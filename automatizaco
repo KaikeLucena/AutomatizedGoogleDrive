@@ -1,0 +1,112 @@
+#########
+Esta automação consiste em acessar nosso sistema aonde contém diversos relatatórios de vários setores, ela faz o download através do find.element este arquivo fica localizado 
+na pasta downloads, depois chamo a biblioteca os.path afim de manipular este arquivo baixado, ele acessa a pasta em que está salvo e seleciona o último download feito através do get.time,
+após fazer essa seleção envia para pasta de destino na maquina local, após isso declaro no script que vou utilzar a API do google drive pois o destino final deste arquivo será nele, sendo assim declaro a variavel 
+que vai chamar as credenciais da minha conta no console google, após isso peço ao script para verificar se o token é válido, caso seja vamos para parte em que é verificado se a página 
+destino existe no drive, caso não exista será impresso um erro, se existir o código vai para o próximo passo que é renomear o arquivo e fazer o upload para o Google Drive.
+
+
+
+import os
+import os.path
+import time
+import shutil
+import glob
+import datetime
+import pandas as pd
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from google.oauth2.credentials import Credentials
+from googleapiclient.http import MediaFileUpload
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+
+navegador = webdriver.Chrome()
+
+navegador.get("https://app.pipefy.com/pipes/302532929/reports_v2/300411065")
+
+time.sleep(7)
+
+campo_email = navegador.find_element(By.NAME, "username").send_keys("#########")
+time.sleep(2)
+
+campo_email = navegador.find_element(By.NAME, "password").send_keys("########")
+time.sleep(2) 
+
+campo_email = navegador.find_element(By.NAME, "submit").click()
+time.sleep(20)
+
+#time deve ser 15 para que dê tempo de clicar no botão 
+campo_email = navegador.find_element("xpath", "//button[@aria-label='Exportar Relatório']").click()
+time.sleep(20)
+
+campo_email = navegador.find_element("xpath", "//*[@title='Download']").click()
+time.sleep(20)
+
+# Encontra o arquivo mais recente na pasta Downloads
+download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+latest_file = max(glob.glob(download_path + "/*.xlsx"), key=os.path.getctime)
+
+# Define o caminho para a pasta Planilha Ritmo
+destination_folder = os.path.join(os.path.expanduser("~"), "Documents", "Codigos", "Planilhas Ritmo")
+
+# Move o arquivo para a pasta Planilha Ritmo
+shutil.move(latest_file, destination_folder)
+
+SCOPES = ['https://www.googleapis.com/auth/drive']
+creds = None
+
+if os.path.exists("token.json"):
+    creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+
+if not creds or not creds.valid:
+    if creds and creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+
+    else:
+        flow = InstalledAppFlow.from_client_secrets_file(
+            "credentials.json", SCOPES)
+        creds = flow.run_local_server(port=0)
+
+    with open('token.json', 'w') as token:
+        token.write(creds.to_json())
+
+try:
+    service = build("drive", "v3", credentials=creds)
+
+    # Search for the destination folder by ID
+    folder_id = '1r4znHF2Oj1N2mOC1FTphKH-Ze5GiuVOP'
+
+    # Search for files in the local folder
+    folder_path = 'C:/Users/Ritmo/Documents/Codigos/Planilhas Ritmo'
+    for file_name in os.listdir(folder_path):
+     file_path = os.path.join(folder_path, file_name)
+     
+    if os.path.isfile(file_path):
+        # Renomeia o arquivo para 7.1___bi.xlsx
+        file_name = 'Contas Fixas.xlsx' #Alterar
+        # Upload do arquivo para a pasta de destino
+        file_metadata = {'name': file_name, 'parents': [folder_id]}
+
+        media = MediaFileUpload(file_path)
+        upload_file = service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields='id',
+                supportsAllDrives=True
+            ).execute()
+
+        print(f'Arquivo enviado para o Google Drive: {file_name}')
+
+
+except HttpError as e:
+    print("Error: " + str(e))
+
+
+
