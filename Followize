@@ -1,0 +1,100 @@
+from selenium import webdriver
+import time
+from selenium.webdriver.common.by import By
+import os
+import pandas as pd
+import zipfile
+import os
+import pandas as pd
+from datetime import date
+from datetime import datetime
+
+#Obtem data atual
+data_atual = date.today()
+
+#Formata data para dia atual
+data_formatada = data_atual.strftime('%Y-%m-%d')
+
+navegador = webdriver.Chrome()
+
+navegador.get (f"https://app.followize.com.br/leads?date_of=creation&date_from=2023-02-01&date_to={data_formatada}&hide_finished=false")
+time.sleep(5)
+
+
+
+email = navegador.find_element(By.NAME, "email").send_keys("kaikelucena8@gmail.com")
+time.sleep(2)
+
+email = navegador.find_element(By.NAME, "password").send_keys("123123")
+time.sleep(10)
+
+email = navegador.find_element("xpath", '//*[@id="app"]/div/div[1]/form/div[3]/button').click()
+time.sleep(2)
+
+email = navegador.find_element("xpath", '//*[@id="leadListingExport"]').click()
+time.sleep(10)
+
+#Deixar time.sleep 100
+email = navegador.find_element("xpath", '//*[@id="notificationBarToggle"]').click()
+time.sleep(100)
+
+email = navegador.find_element(By.CLASS_NAME, 'app-notification-bar-list-item-content').click()
+time.sleep(20)
+
+#Acessando arquivo zipado
+
+
+# Pasta onde os downloads estão sendo salvos
+pasta_downloads = 'C:\\Users\\Ritmo\\Downloads'
+
+# Obter a lista de arquivos na pasta de downloads
+arquivos = os.listdir(pasta_downloads)
+
+# Ordenar a lista de arquivos por tempo de criação (mais recente primeiro)
+arquivos_ordenados = sorted(arquivos, key=lambda x: os.path.getctime(os.path.join(pasta_downloads, x)), reverse=True)
+
+# Verificar se há arquivos na pasta de downloads
+if arquivos_ordenados:
+    # Selecionar o primeiro arquivo da lista (o mais recente)
+    arquivo_zip = arquivos_ordenados[0]
+    
+    # Verificar se o arquivo é um arquivo zip
+    if arquivo_zip.endswith('.zip'):
+        # Caminho completo do arquivo zip
+        caminho_arquivo_zip = os.path.join(pasta_downloads, arquivo_zip)
+        
+        # Extrair o arquivo zip
+        with zipfile.ZipFile(caminho_arquivo_zip, 'r') as zip_ref:
+            # Verificar todos os nomes de arquivo dentro do zip
+            for nome_arquivo in zip_ref.namelist():
+                # Verificar se o nome do arquivo começa com o prefixo "leads_"
+                if nome_arquivo.startswith('leads_'):
+                    # Extrair o arquivo
+                    zip_ref.extract(nome_arquivo)
+                    
+                    # Abrir a planilha usando o Pandas
+                    df = pd.read_excel(nome_arquivo)
+                    
+                    # Fazer qualquer manipulação necessária nos dados da planilha
+                    # ...
+                    valor_celula = "17/05/23 - 21:31"
+                    data_hora = datetime.strptime(valor_celula, "%d/%m/%y - %H:%M")
+                    data = data_hora.date()
+                    data_formatada = data.strftime("%d/%m/%y")
+
+
+
+                    
+                    # Fechar a planilha
+                    #df.close()
+                    
+                    break  # Parar o loop, pois encontramos o arquivo de interesse
+            else:
+                print('Nenhum arquivo de planilha encontrado no arquivo zip.')
+    else:
+        print('O arquivo mais recente não é um arquivo zip.')
+else:
+    print('Nenhum arquivo encontrado na pasta de downloads.')
+
+
+
