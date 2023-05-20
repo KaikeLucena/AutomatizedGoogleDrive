@@ -8,6 +8,8 @@ import os
 import pandas as pd
 from datetime import date
 from datetime import datetime
+from openpyxl import load_workbook
+import glob
 
 #Obtem data atual
 data_atual = date.today()
@@ -15,18 +17,18 @@ data_atual = date.today()
 #Formata data para dia atual
 data_formatada = data_atual.strftime('%Y-%m-%d')
 
+caminho = 'C:\\Users\\Ritmo\\Documents\\Codigos\\leads_19052023085336.xlsx'
+
 navegador = webdriver.Chrome()
 
-navegador.get (f"https://app.followize.com.br/leads?date_of=creation&date_from=2023-02-01&date_to={data_formatada}&hide_finished=false")
+navegador.get(f"https://app.followize.com.br/leads?date_of=creation&date_from=2023-02-01&date_to={data_formatada}&hide_finished=false")
 time.sleep(5)
-
-
 
 email = navegador.find_element(By.NAME, "email").send_keys("kaikelucena8@gmail.com")
 time.sleep(2)
 
 email = navegador.find_element(By.NAME, "password").send_keys("123123")
-time.sleep(10)
+time.sleep(2)
 
 email = navegador.find_element("xpath", '//*[@id="app"]/div/div[1]/form/div[3]/button').click()
 time.sleep(2)
@@ -36,13 +38,12 @@ time.sleep(10)
 
 #Deixar time.sleep 100
 email = navegador.find_element("xpath", '//*[@id="notificationBarToggle"]').click()
-time.sleep(100)
+time.sleep(130)
 
 email = navegador.find_element(By.CLASS_NAME, 'app-notification-bar-list-item-content').click()
 time.sleep(20)
 
 #Acessando arquivo zipado
-
 
 # Pasta onde os downloads estão sendo salvos
 pasta_downloads = 'C:\\Users\\Ritmo\\Downloads'
@@ -74,20 +75,62 @@ if arquivos_ordenados:
                     
                     # Abrir a planilha usando o Pandas
                     df = pd.read_excel(nome_arquivo)
-                    
+                                       
                     # Fazer qualquer manipulação necessária nos dados da planilha
                     # ...
-                    valor_celula = "17/05/23 - 21:31"
-                    data_hora = datetime.strptime(valor_celula, "%d/%m/%y - %H:%M")
-                    data = data_hora.date()
-                    data_formatada = data.strftime("%d/%m/%y")
 
+                    # Carregar o arquivo da planilha
+                    workbook = load_workbook(nome_arquivo)
 
+                    # Selecionar a planilha desejada
+                    sheet = workbook['Worksheet']
 
+                    # Percorrer as células das colunas B e C
+                    for row in sheet.iter_rows(min_row=2, min_col=2, max_col=3):
+                        # Obter o valor da célula B
+                        b_cell_value = str(row[0].value)
+
+                        # Separar a data e a hora usando o caractere "-"
+                        b_date_parts = b_cell_value.split('-')
+
+                        # Obter a parte da data
+                        b_date_part = b_date_parts[0].strip()
+
+                        # Converter a parte da data em um objeto datetime para garantir que seja uma data válida
+                        try:
+                            b_date_obj = datetime.strptime(b_date_part, '%d/%m/%y')
+                        except ValueError:
+                            # Ignorar células que não seguem o formato esperado
+                            continue
+
+                        # Atribuir a parte da data formatada à célula B
+                        row[0].value = b_date_obj.strftime('%d/%m/%y')
+
+                        # Obter o valor da célula C
+                        c_cell_value = str(row[1].value)
+
+                        # Separar a data e a hora usando o caractere "-"
+                        c_date_parts = c_cell_value.split('-')
+
+                        # Obter a parte da data
+                        c_date_part = c_date_parts[0].strip()
+
+                        # Converter a parte da data em um objeto datetime para garantir que seja uma data válida
+                        try:
+                            c_date_obj = datetime.strptime(c_date_part, '%d/%m/%y')
+                        except ValueError:
+                            # Ignorar células que não seguem o formato esperado
+                            continue
+
+                        # Atribuir a parte da data formatada à célula C
+                        row[1].value = c_date_obj.strftime('%d/%m/%y')
+
+                    # Salvar as alterações no arquivo
+                    workbook.save('C:\\Users\\Ritmo\\Documents\\Codigos\\teste1.xlsx')
                     
                     # Fechar a planilha
-                    #df.close()
-                    
+                    workbook.close()
+
                     break  # Parar o loop, pois encontramos o arquivo de interesse
             else:
                 print('Nenhum arquivo de planilha encontrado no arquivo zip.')
@@ -95,6 +138,3 @@ if arquivos_ordenados:
         print('O arquivo mais recente não é um arquivo zip.')
 else:
     print('Nenhum arquivo encontrado na pasta de downloads.')
-
-
-
