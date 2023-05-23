@@ -81,7 +81,7 @@ try:
     service = build("drive", "v3", credentials=creds)
 
     # Search for the destination folder by ID
-    folder_id = '1r4znHF2Oj1N2mOC1FTphKH-Ze5GiuVOP'
+    folder_id = '*****************'
 
     # Search for files in the local folder
     folder_path = 'C:/Users/Ritmo/Documents/Codigos/Planilhas Ritmo'
