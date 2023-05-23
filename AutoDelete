@@ -7,7 +7,7 @@ from googleapiclient.errors import HttpError
 nome_planilha = 'RH - Bi.xlsx'
 
 # define o ID da pasta que contém a planilha
-id_pasta = '1r8oq0pa9Ov468boEbmIhg8QWIWuuM8J3'
+id_pasta = '******'
 
 # carrega as credenciais de autenticação do arquivo token.json
 creds = None
