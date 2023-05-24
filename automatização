@@ -1,12 +1,4 @@
 #########
-Esta automação consiste em acessar nosso sistema aonde contém diversos relatatórios de vários setores, ela faz o download através do find.element este arquivo fica localizado 
-na pasta downloads, depois chamo a biblioteca os.path afim de manipular este arquivo baixado, ele acessa a pasta em que está salvo e seleciona o último download feito através do get.time,
-após fazer essa seleção envia para pasta de destino na maquina local, após isso declaro no script que vou utilzar a API do google drive pois o destino final deste arquivo será nele, sendo assim declaro a variavel 
-que vai chamar as credenciais da minha conta no console google, após isso peço ao script para verificar se o token é válido, caso seja vamos para parte em que é verificado se a página 
-destino existe no drive, caso não exista será impresso um erro, se existir o código vai para o próximo passo que é renomear o arquivo e fazer o upload para o Google Drive.
-
-
-
 import os
 import os.path
 import time
